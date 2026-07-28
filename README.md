@@ -69,6 +69,7 @@ ljh9512060277@c4r5s5 CodysseyMissionE1 % cd ./practice && pwd && cd
 "절대 경로는 /부터 시작하는 전체 주소, 상대 경로는 현재 위치 기준의 길 안내다. /tmp는 어디서 쳐도 같은 곳으로 가지만 ./practice는 서 있는 위치에 따라 결과가 달라진다."
 
 ### 4-2. 권한 실습 (전/후 비교)
+
 ```
 ljh9512060277@c4r5s5 CodysseyMissionE1 % echo 'echo "실행 성공!"' > hello.sh 
 ljh9512060277@c4r5s5 CodysseyMissionE1 % ls -1 hello.sh
@@ -92,11 +93,174 @@ ljh9512060277@c4r5s5 CodysseyMissionE1 % rm - r secret
 rm: -: No such file or directory
 rm: r: No such file or directory
 rm: secret: is a directory
-ljh9512060277@c4r5s5 CodysseyMissionE1 % rm -r secret
+ljh9512060277@c4r5s5 CodysseyMissionE1 % rm -r secret너
 ```
 
 ### 4-3. Docker 설치·점검
-(← 5단계 앞부분 로그)
+
+```
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker --version
+Docker version 28.5.2, build ecc6942
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker info
+Client:
+ Version:    28.5.2
+ Context:    orbstack
+ Debug Mode: false
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.29.1
+    Path:     /Users/ljh9512060277/.docker/cli-plugins/docker-buildx
+  compose: Docker Compose (Docker Inc.)
+    Version:  v2.40.3
+    Path:     /Users/ljh9512060277/.docker/cli-plugins/docker-compose
+
+Server:
+ Containers: 1
+  Running: 0
+  Paused: 0
+  Stopped: 1
+ Images: 2
+ Server Version: 28.5.2
+ Storage Driver: overlay2
+  Backing Filesystem: btrfs
+  Supports d_type: true
+  Using metacopy: false
+  Native Overlay Diff: true
+  userxattr: false
+ Logging Driver: json-file
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 2
+ Plugins:
+  Volume: local
+  Network: bridge host ipvlan macvlan null overlay
+  Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+ CDI spec directories:
+  /etc/cdi
+  /var/run/cdi
+ Swarm: inactive
+ Runtimes: io.containerd.runc.v2 runc
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: 1c4457e00facac03ce1d75f7b6777a7a851e5c41
+ runc version: d842d7719497cc3b774fd71620278ac9e17710e0
+ init version: de40ad0
+ Security Options:
+  seccomp
+   Profile: builtin
+  cgroupns
+ Kernel Version: 6.17.8-orbstack-00308-g8f9c941121b1
+ Operating System: OrbStack
+ OSType: linux
+ Architecture: x86_64
+ CPUs: 6
+ Total Memory: 15.67GiB
+ Name: orbstack
+ ID: 223d876d-3699-4719-9b21-1baf83160145
+ Docker Root Dir: /var/lib/docker
+ Debug Mode: false
+ Experimental: false
+ Insecure Registries:
+  ::1/128
+  127.0.0.0/8
+ Live Restore Enabled: false
+ Product License: Community Engine
+ Default Address Pools:
+   Base: 192.168.97.0/24, Size: 24
+   Base: 192.168.107.0/24, Size: 24
+   Base: 192.168.117.0/24, Size: 24
+   Base: 192.168.147.0/24, Size: 24
+   Base: 192.168.148.0/24, Size: 24
+   Base: 192.168.155.0/24, Size: 24
+   Base: 192.168.156.0/24, Size: 24
+   Base: 192.168.158.0/24, Size: 24
+   Base: 192.168.163.0/24, Size: 24
+   Base: 192.168.164.0/24, Size: 24
+   Base: 192.168.165.0/24, Size: 24
+   Base: 192.168.166.0/24, Size: 24
+   Base: 192.168.167.0/24, Size: 24
+   Base: 192.168.171.0/24, Size: 24
+   Base: 192.168.172.0/24, Size: 24
+   Base: 192.168.181.0/24, Size: 24
+   Base: 192.168.183.0/24, Size: 24
+   Base: 192.168.186.0/24, Size: 24
+   Base: 192.168.207.0/24, Size: 24
+   Base: 192.168.214.0/24, Size: 24
+   Base: 192.168.215.0/24, Size: 24
+   Base: 192.168.216.0/24, Size: 24
+   Base: 192.168.223.0/24, Size: 24
+   Base: 192.168.227.0/24, Size: 24
+   Base: 192.168.228.0/24, Size: 24
+   Base: 192.168.229.0/24, Size: 24
+   Base: 192.168.237.0/24, Size: 24
+   Base: 192.168.239.0/24, Size: 24
+   Base: 192.168.242.0/24, Size: 24
+   Base: 192.168.247.0/24, Size: 24
+   Base: fd07:b51a:cc66:d000::/56, Size: 64
+
+WARNING: DOCKER_INSECURE_NO_IPTABLES_RAW is set
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker run hello-world
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker images
+REPOSITORY    TAG       IMAGE ID       CREATED        SIZE
+ubuntu        latest    de7345b16e94   2 weeks ago    100MB
+hello-world   latest    e2ac70e7319a   4 months ago   10.1kB
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker ps -a
+CONTAINER ID   IMAGE         COMMAND    CREATED          STATUS                      PORTS     NAMES
+f36c1ebb72ee   hello-world   "/hello"   11 seconds ago   Exited (0) 11 seconds ago             brave_diffie
+8a3fc59746c3   hello-world   "/hello"   5 minutes ago    Exited (0) 5 minutes ago              wonderful_shockley
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker run -it --name ub1
+ ubuntu bash 
+root@bf4efb8e9425:/# ls /
+bin   dev  home  lib64  mnt  proc  run   srv  tmp  var
+boot  etc  lib   media  opt  root  sbin  sys  usr
+root@bf4efb8e9425:/# echo "running inside container"
+running inside container
+root@bf4efb8e9425:/# exit
+exit
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker ps -a 
+CONTAINER ID   IMAGE         COMMAND    CREATED              STATUS                     PORTS     NAMES
+bf4efb8e9425   ubuntu        "bash"     About a minute ago   Exited (0) 8 seconds ago             ub1
+f36c1ebb72ee   hello-world   "/hello"   2 minutes ago        Exited (0) 2 minutes ago             brave_diffie
+8a3fc59746c3   hello-world   "/hello"   8 minutes ago        Exited (0) 8 minutes ago             wonderful_shockley
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker run -d --name ub2 
+ubuntu sleep infinity
+d8ccc4e382e2d6d4b3da19a499f2d5ba7c3bbabce491c499ddf471c846d5bba8
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker exec -it ub2 bash 
+root@d8ccc4e382e2:/# exit
+exit
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker ps 
+CONTAINER ID   IMAGE     COMMAND            CREATED          STATUS          PORTS     NAMES
+d8ccc4e382e2   ubuntu    "sleep infinity"   18 seconds ago   Up 17 seconds             ub2
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker stats --no-stream
+CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT    MEM %     NET I/O         BLOCK I/O     PIDS
+d8ccc4e382e2   ub2       0.00%     1.93MiB / 15.67GiB   0.01%     1.13kB / 126B   14.7MB / 0B   1
+```
+
+"대화형 실행(run -it)은 내가 곧 컨테이너의 본체 작업이라 exit하면 함께 종료되지만, 배경 실행 후 exec로 들어가면 옆문으로 드나드는 것이라 나가도 컨테이너가 유지된다. attach는 본체 작업에 직접 붙는 방식이라 빠져나오는 방법(Ctrl+P, Ctrl+Q)에 따라 컨테이너가 함께 꺼질 수 있다."
+
 
 ### 4-4. 컨테이너 실습 (hello-world / ubuntu / 종료·유지 관찰)
 (← 5단계 뒷부분 로그 + 관찰 정리 문장)
