@@ -1,0 +1,25 @@
+[1m[7m%[27m[1m[0m                                                                  [0m[27m[24m[Jljh9512060277@c4r5s5 CodysseyMissionE1 % [K[?2004hddocker run -  -it --name ub1 [K  un buntu bash[?2004l
+[?2004h]0;root@dad3aa168b06: /root@dad3aa168b06:/# ls /
+[?2004l[0m[01;36mbin[0m   [01;34mdev[0m  [01;34mhome[0m  [01;36mlib64[0m  [01;34mmnt[0m  [01;34mproc[0m  [01;34mrun[0m   [01;34msrv[0m  [30;42mtmp[0m  [01;34mvar[0m
+[01;34mboot[0m  [01;34metc[0m  [01;36mlib[0m   [01;34mmedia[0m  [01;34mopt[0m  [01;34mroot[0m  [01;36msbin[0m  [01;34msys[0m  [01;34musr[0m
+[?2004h]0;root@dad3aa168b06: /root@dad3aa168b06:/# echo "runing ind side container"
+[?2004lruning inside container
+[?2004h]0;root@dad3aa168b06: /root@dad3aa168b06:/# [Kexit
+[?2004lexit
+[1m[7m%[27m[1m[0m                                                                  [0m[27m[24m[Jljh9512060277@c4r5s5 CodysseyMissionE1 % [K[?2004hddocker ps -a f --filter nam [Kee=b ub1[?2004l
+CONTAINER ID   IMAGE     COMMAND   CREATED          STATUS                     PORTS     NAMES
+dad3aa168b06   ubuntu    "bash"    27 seconds ago   Exited (0) 8 seconds ago             ub1
+[1m[7m%[27m[1m[0m                                                                  [0m[27m[24m[Jljh9512060277@c4r5s5 CodysseyMissionE1 % [K[?2004hddocker ru n -d --n,a   name ub2  [Kuubuntu sleep infinity[?2004l
+0a32d3d3370ed9844f4a2674b6f9071a6d9012e897d6b724d0e95c128d06f4b1
+[1m[7m%[27m[1m[0m                                                                  [0m[27m[24m[Jljh9512060277@c4r5s5 CodysseyMissionE1 % [K[?2004hddok cker exec i -t it ub2 bash[?2004l
+[?2004h]0;root@0a32d3d3370e: /root@0a32d3d3370e:/# echo "entr ered through docker exec"
+[?2004lentered through docker exec
+[?2004h]0;root@0a32d3d3370e: /root@0a32d3d3370e:/# [Kexit
+[?2004lexit
+[1m[7m%[27m[1m[0m                                                                  [0m[27m[24m[Jljh9512060277@c4r5s5 CodysseyMissionE1 % [K[?2004hddocker ps --fili ter name=u [Kbb2[?2004l
+CONTAINER ID   IMAGE     COMMAND            CREATED          STATUS          PORTS     NAMES
+0a32d3d3370e   ubuntu    "sleep infinity"   38 seconds ago   Up 37 seconds             ub2
+[1m[7m%[27m[1m[0m                                                                  [0m[27m[24m[Jljh9512060277@c4r5s5 CodysseyMissionE1 % [K[?2004hddocker stats --no -stream  [Kuub2[?2004l
+CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT     MEM %     NET I/O       BLOCK I/O    PIDS
+0a32d3d3370e   ub2       0.00%     2.418MiB / 15.67GiB   0.02%     830B / 126B   598kB / 0B   1
+[1m[7m%[27m[1m[0m                                                                  [0m[27m[24m[Jljh9512060277@c4r5s5 CodysseyMissionE1 % [K[?2004h[?2004l
