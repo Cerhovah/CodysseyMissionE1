@@ -272,6 +272,8 @@ d8ccc4e382e2   ub2       0.00%     1.93MiB / 15.67GiB   0.01%     1.13kB / 126B 
 (← 6단계 빌드/실행 로그 붙여넣기)
 
 ### 4-6. 포트 매핑 접속 증거
+
+```
 ljh9512060277@c4r5s5 CodysseyMissionE1 % docker build -t my-web:1.0 .
 [+] Building 1.4s (7/7) FINISHED                                   docker:orbstack
  => [internal] load build definition from Dockerfile                          0.1s
@@ -349,11 +351,32 @@ f47b01e69bf0   my-web:1.0   "/docker-entrypoint.…"   3 minutes ago   Up 3 minu
 ljh9512060277@c4r5s5 CodysseyMissionE1 % docker rm my-web-dup
 my-web-dup
 ljh9512060277@c4r5s5 CodysseyMissionE1 % 
+```
 
 "컨테이너는 격리된 방이라 바깥에서 직접 접근할 수 없고, 내 컴퓨터의 포트와 컨테이너 안 포트를 연결(매핑)해야 접속이 된다. 같은 이미지 하나로 8080과 8081에 두 개를 나란히 띄울 수 있는 것 자체가 격리와 포트 매핑의 증명이다."
 
 ### 4-7. 바인드 마운트 / 볼륨 영속성
-(← 7단계 로그 + 전/후 캡처)
+
+```
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker run -d -p 8082:80 --name my-web-live -v "$(pwd)/site:/usr/share/nginx/html" nginx:alpine
+c18ba5971f366ccf8c91486b9c159170ec5d04bdad2bd13e091e8980d5f8c1ba
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker volume create mission-data
+mission-data
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker run -d --name keeper -v mission-data:/data ubuntu sleep infinity
+0edd0d93076b8b4fbf775750b0755b4c4277743d6ae0e1229f81ebb86089320f
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker exec keeper bash -c "echo '컨테이너가 삭제되어도 남는 기록' > /data/proof.txt"
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker exec keeper cat /data/proof.txt 
+컨테이너가 삭제되어도 남는 기록
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker rm -f keeper
+keeper
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker run -d --name keeper2 -v mission-data:/data ubuntu sleep infinity
+1b35dfd8cbf4e971371478ad02f40d9ede0a5cddc29041c8862887f62d57e3f2
+ljh9512060277@c4r5s5 CodysseyMissionE1 % docker exec keeper2 cat /data/proof.txt
+컨테이너가 삭제되어도 남는 기록
+```
+
+"볼륨은 도커가 관리하는 별도 저장 공간이라 컨테이너보다 오래 산다. 컨테이너는 쓰고 버리되 데이터는 지켜야 할 때 볼륨을 쓴다. 마운트는 개발 편의(즉시 반영)용, 볼륨은 데이터 보존용이라는 점이 둘의 차이다."
+
 
 ### 4-8. Git 설정 및 GitHub·VSCode 연동
 (← 8단계 로그 + 연동 캡처)
