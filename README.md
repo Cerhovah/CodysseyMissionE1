@@ -30,7 +30,43 @@
 ## 4. 수행 로그
 
 ### 4-1. 터미널 기본 조작
-(← 3단계 로그 붙여넣기)
+
+```
+ljh9512060277@c4r5s5 CodysseyMissionE1 % pwd
+/Users/ljh9512060277/CodysseyMissionE1
+ljh9512060277@c4r5s5 CodysseyMissionE1 % ls -la
+total 8
+drwxr-xr-x   4 ljh9512060277  ljh9512060277   128  7 28 13:34 .
+drwxr-x---+ 25 ljh9512060277  ljh9512060277   800  7 28 13:40 ..
+drwxr-xr-x  15 ljh9512060277  ljh9512060277   480  7 28 13:40 .git
+-rw-r--r--   1 ljh9512060277  ljh9512060277  3162  7 28 13:39 README.md
+ljh9512060277@c4r5s5 CodysseyMissionE1 % mkdir images
+ljh9512060277@c4r5s5 CodysseyMissionE1 % mkdir practice
+ljh9512060277@c4r5s5 CodysseyMissionE1 % cd practice
+ljh9512060277@c4r5s5 practice % touch memo.txt
+ljh9512060277@c4r5s5 practice % cat memo.txt
+ljh9512060277@c4r5s5 practice % cp memo.txt memo_copy.txt
+ljh9512060277@c4r5s5 practice % mv memo_copy.txt note.txt
+ljh9512060277@c4r5s5 practice % ls - la
+ls: -: No such file or directory
+ls: la: No such file or directory
+ljh9512060277@c4r5s5 practice % ls -la
+total 0
+drwxr-xr-x  4 ljh9512060277  ljh9512060277  128  7 28 13:45 .
+drwxr-xr-x  6 ljh9512060277  ljh9512060277  192  7 28 13:45 ..
+-rw-r--r--  1 ljh9512060277  ljh9512060277    0  7 28 13:45 memo.txt
+-rw-r--r--  1 ljh9512060277  ljh9512060277    0  7 28 13:45 note.txt
+ljh9512060277@c4r5s5 practice % rm note.txt
+ljh9512060277@c4r5s5 practice % cd ..
+ljh9512060277@c4r5s5 CodysseyMissionE1 % cd /tmp && pwd
+/tmp
+ljh9512060277@c4r5s5 /tmp % cd - 
+~/CodysseyMissionE1
+ljh9512060277@c4r5s5 CodysseyMissionE1 % cd ./practice && pwd && cd
+/Users/ljh9512060277/CodysseyMissionE1/practice
+```
+
+"절대 경로는 /부터 시작하는 전체 주소, 상대 경로는 현재 위치 기준의 길 안내다. /tmp는 어디서 쳐도 같은 곳으로 가지만 ./practice는 서 있는 위치에 따라 결과가 달라진다."
 
 ### 4-2. 권한 실습 (전/후 비교)
 (← 4단계 로그 붙여넣기)
