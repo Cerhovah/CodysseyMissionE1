@@ -379,6 +379,26 @@ ljh9512060277@c4r5s5 CodysseyMissionE1 % docker exec keeper2 cat /data/proof.txt
 
 
 ### 4-8. Git 설정 및 GitHub·VSCode 연동
+ljh9512060277@c4r5s5 CodysseyMissionE1 % git config --global user.name "cerhovah"                    
+ljh9512060277@c4r5s5 CodysseyMissionE1 % git config --global user.
+email "ljh951206@gmail.com"
+ljh9512060277@c4r5s5 CodysseyMissionE1 % git config --global init.
+defaultBranch main
+ljh9512060277@c4r5s5 CodysseyMissionE1 % git config --list
+credential.helper=osxkeychain
+user.name=cerhovah
+user.email=ljh951206@gmail.com
+init.defaultbranch=main
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+core.ignorecase=true
+core.precomposeunicode=true
+remote.origin.url=https://github.com/Cerhovah/CodysseyMissionE1.git
+remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
 (← 8단계 로그 + 연동 캡처)
 
 ## 5. 검증 방법 요약
