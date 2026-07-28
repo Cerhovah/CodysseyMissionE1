@@ -69,7 +69,31 @@ ljh9512060277@c4r5s5 CodysseyMissionE1 % cd ./practice && pwd && cd
 "절대 경로는 /부터 시작하는 전체 주소, 상대 경로는 현재 위치 기준의 길 안내다. /tmp는 어디서 쳐도 같은 곳으로 가지만 ./practice는 서 있는 위치에 따라 결과가 달라진다."
 
 ### 4-2. 권한 실습 (전/후 비교)
-(← 4단계 로그 붙여넣기)
+```
+ljh9512060277@c4r5s5 CodysseyMissionE1 % echo 'echo "실행 성공!"' > hello.sh 
+ljh9512060277@c4r5s5 CodysseyMissionE1 % ls -1 hello.sh
+hello.sh
+ljh9512060277@c4r5s5 CodysseyMissionE1 % ./hello.sh 
+zsh: permission denied: ./hello.sh
+ljh9512060277@c4r5s5 CodysseyMissionE1 % chmod 755 hello.sh
+ljh9512060277@c4r5s5 CodysseyMissionE1 % ls -1 hello.sh
+hello.sh
+ljh9512060277@c4r5s5 CodysseyMissionE1 % ./hello.sh
+실행 성공!
+ljh9512060277@c4r5s5 CodysseyMissionE1 % mkdir secret 
+ljh9512060277@c4r5s5 CodysseyMissionE1 % ls -1d secret
+secret
+ljh9512060277@c4r5s5 CodysseyMissionE1 % chmod 644 secret
+ljh9512060277@c4r5s5 CodysseyMissionE1 % cd secret
+cd: permission denied: secret
+ljh9512060277@c4r5s5 CodysseyMissionE1 % chmod 755 secret
+ljh9512060277@c4r5s5 CodysseyMissionE1 % cd secret && cd .. 
+ljh9512060277@c4r5s5 CodysseyMissionE1 % rm - r secret 
+rm: -: No such file or directory
+rm: r: No such file or directory
+rm: secret: is a directory
+ljh9512060277@c4r5s5 CodysseyMissionE1 % rm -r secret
+```
 
 ### 4-3. Docker 설치·점검
 (← 5단계 앞부분 로그)
