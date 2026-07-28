@@ -330,9 +330,6 @@ c18ba5971f366ccf8c91486b9c159170ec5d04bdad2bd13e091e8980d5f8c1ba
 
 ![마운트 변경 후 — 8082, v3](images/mount-after.png)
 
-**[보충 2: index.html 수정(v3, 닫는 태그 수정) 후 8082 새로고침 화면을
-images/mount-after.png로 저장하면 위 이미지가 표시됨]**
-
 **볼륨 영속성** — 볼륨을 만들어 컨테이너에 연결하고, 컨테이너를 완전히 삭제한 뒤
 새 컨테이너에서 데이터가 살아 있는지 확인했다.
 
@@ -390,9 +387,6 @@ VSCode 계정 연동 화면:
 푸시 후 GitHub 커밋 반영 화면:
 
 ![GitHub 커밋 목록](images/github-commits.png)
-
-**[보충 3: 위 두 캡처를 images/vscode-github.png, images/github-commits.png로
-저장하면 이미지가 표시됨]**
 
 Git은 내 컴퓨터에서 변경 이력을 기록·되돌리기 하는 도구이고, GitHub는 그 기록을
 올려 공유·협업하는 원격 플랫폼이다. 이 저장소의 커밋 이력 자체가 단계별 수행 순서의
