@@ -41,7 +41,7 @@
 ```
 ljh9512060277@c4r5s5 CodysseyMissionE1 % pwd
 /Users/ljh9512060277/CodysseyMissionE1
-ljh9512060277@c4r5s5 CodysseyMissionE1 % ls -la
+ljh9512060277@c4r5s5 CodysseyMissionE1 % ls -la 
 total 8
 drwxr-xr-x   4 ljh9512060277  ljh9512060277   128  7 28 13:34 .
 drwxr-x---+ 25 ljh9512060277  ljh9512060277   800  7 28 13:40 ..
@@ -455,7 +455,223 @@ Git은 내 컴퓨터에서 변경 이력을 기록·되돌리기 하는 도구�
 - 캠퍼스 환경은 sudo 제한으로 OrbStack을 사용했으나, 본 문서의 docker 명령은
   표준 명령이므로 일반 Docker 환경에서도 동일하게 재현된다.
 
-## 8. 부록
+## 8. 보너스 과제 (선택 수행)
+
+필수 요구사항을 마친 뒤 보너스 과제 5개를 모두 수행했다.
+관련 파일은 저장소 루트의 `docker-compose.yml`, `.env`,
+`templates/default.conf.template`이다.
+
+### 8-0. 구성 파일
+
+`docker-compose.yml`
+
+```yaml
+services:
+  web:
+    build: .
+    image: mission1-web-compose:1.0
+    container_name: compose-web
+    environment:
+      NGINX_PORT: ${NGINX_PORT}
+      APP_ENV: ${APP_ENV}
+    ports:
+      - "${HOST_PORT}:${NGINX_PORT}"
+    volumes:
+      - ./templates:/etc/nginx/templates:ro
+
+  helper:
+    image: alpine:latest
+    container_name: compose-helper
+    command: tail -f /dev/null
+    depends_on:
+      - web
+```
+
+`.env` — 실행 설정을 코드 바깥으로 분리한 파일이다.
+
+```
+HOST_PORT=8090
+NGINX_PORT=8080
+APP_ENV=prod
+```
+
+`templates/default.conf.template` — nginx 설정에서 수신 포트만 변수로 뺀 틀이다.
+
+```
+server {
+    listen       ${NGINX_PORT};
+    server_name  localhost;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html;
+    }
+}
+```
+
+nginx 공식 이미지는 시작할 때 `/etc/nginx/templates/*.template` 파일의 환경 변수를 채워
+`/etc/nginx/conf.d/`로 내보낸다. 덕분에 이미지를 다시 빌드하지 않고 환경 변수만 바꿔
+수신 포트를 변경할 수 있다. 4-6의 `docker logs` 출력에 보이는
+`20-envsubst-on-templates.sh`가 이 작업을 수행하는 스크립트다.
+
+`.env`에는 비밀값이 없어 재현성을 위해 저장소에 포함했다. 다만 실제 프로젝트에서
+`.env`에 토큰·비밀번호가 들어가는 경우에는 `.gitignore`로 제외하고,
+값이 빈 `.env.example`만 커밋하는 것이 일반적인 관행이다.
+
+### 8-1. Docker Compose 기초 — 실행 명령을 문서로 옮기기
+
+기존에는 아래처럼 긴 명령을 손으로 입력했다.
+
+```
+docker run -d -p 8080:80 --name my-web-8080 my-web:1.0
+```
+
+같은 실행을 Compose 파일에 적어 두면, 옵션이 사람이 읽는 설정 파일로 남고
+실행은 짧은 명령 하나가 된다.
+
+```
+[보충 A: docker compose up -d --build 실행 로그를 붙여넣기]
+```
+
+![Compose 실행 및 상태 확인](images/compose-up.png)
+
+브라우저에서 호스트 포트로 접속해 정상 응답을 확인했다.
+
+![Compose 웹 접속 — 8090](images/compose-web-8090.png)
+
+배움 포인트: 실행 명령이 문서화된 설정으로 바뀌면 옵션을 기억할 필요가 없고,
+같은 파일을 받은 사람이 동일한 환경을 그대로 재현할 수 있다.
+
+### 8-2. 멀티 컨테이너와 컨테이너 간 통신
+
+`web`(웹 서버)과 `helper`(점검용 리눅스) 두 서비스를 함께 띄우고,
+helper 안에서 서비스 이름으로 web에 접속되는지 확인했다.
+
+```
+[보충 B: 아래 명령들의 실행 결과를 붙여넣기
+ - docker compose exec helper wget -qO- http://web:8080
+ - docker compose exec helper ping -c 2 web
+ - (대조 실험) docker compose exec helper wget -qO- http://web:8090
+ - (대조 실험) docker compose exec helper wget -qO- http://localhost:8080 ]
+```
+
+![컨테이너 간 통신 확인](images/compose-network.png)
+
+관찰 결과 정리:
+
+- helper에서 `http://web`으로 접속이 된다. Compose가 서비스마다 기본 네트워크와
+  이름을 부여하기 때문이며, 주소로 IP가 아니라 서비스 이름을 쓸 수 있는 것이
+  서비스 디스커버리다.
+- 컨테이너끼리는 **컨테이너 내부 포트**(8080)로 직접 통신한다. 호스트 포트(8090)로는
+  연결되지 않는데, 포트 매핑은 호스트와 컨테이너 사이의 통로일 뿐 컨테이너 사이의
+  통로가 아니기 때문이다.
+- helper 안에서 `localhost`는 helper 자신을 가리키므로 web에 닿지 않는다.
+  각 컨테이너가 자기만의 네트워크 이름 공간을 갖는다는 점이 여기서 드러난다.
+
+### 8-3. Compose 운영 명령 — 상태 확인 루틴
+
+```
+[보충 C: 아래 명령들의 실행 결과를 붙여넣기
+ - docker compose ps
+ - docker compose logs web --tail 15
+ - docker compose down
+ - docker compose ps   (종료 후, 목록이 비어 있음) ]
+```
+
+운영 관점의 기본 루틴은 "무엇이 떠 있나(ps) → 정상인가(logs) → 정리(down)"이다.
+`docker compose down`은 이 파일로 만든 컨테이너와 네트워크를 한 번에 정리하므로,
+개별 컨테이너를 하나씩 지우던 방식보다 실수가 적다.
+다만 `down -v`는 연결된 볼륨까지 삭제하므로 데이터가 필요한 경우 사용하지 않는다.
+
+### 8-4. 환경 변수 활용 — 설정과 코드의 분리
+
+`.env`의 값만 바꾸고 이미지 재빌드 없이 수신 포트를 변경했다.
+
+변경 전: 호스트 8090 → 컨테이너 8080
+변경 후: 호스트 8091 → 컨테이너 9000
+
+```
+[보충 D: 아래 명령들의 실행 결과를 붙여넣기
+ - docker compose exec web env | grep APP_ENV   (Dockerfile 기본값 dev가 prod로 덮여 있음)
+ - .env 수정 후: docker compose up -d
+ - docker compose ps   (포트 표기가 8091->9000으로 바뀐 것)
+ - curl http://localhost:8091 ]
+```
+
+![환경 변수 변경 후 접속](images/compose-env-changed.png)
+
+배움 포인트: 이미지(코드)는 그대로 두고 `.env`(설정)만 바꿔 동작이 달라졌다.
+Dockerfile에 `ENV APP_ENV=dev`로 넣어 둔 기본값을 Compose가 `prod`로 덮어쓴 것도
+같은 원리로, 하나의 이미지를 개발·운영 등 여러 환경에서 재사용하는 방식이다.
+
+### 8-5. GitHub SSH 키 설정
+
+기존 4-8의 연동은 HTTPS 방식이었고, 보너스로 SSH 키를 등록해 인증 방식을 전환했다.
+
+```
+[보충 E: 아래 명령들의 실행 결과를 붙여넣기
+ - ssh-keygen -t ed25519 -C "메일주소"   (경로/암호 입력 부분은 생략 가능)
+ - ssh -T git@github.com   (성공 인사 메시지)
+ - git remote -v   (origin이 git@github.com:... 로 바뀐 것)
+ - git push   (SSH로 정상 푸시된 결과) ]
+```
+
+![SSH 연결 확인](images/ssh-test.png)
+
+![GitHub SSH 키 등록](images/github-ssh-key.png)
+
+인증 방식 차이와 재현 시 주의사항:
+
+- HTTPS 방식은 저장소 주소가 `https://github.com/...` 형태이며, 접속할 때
+  개인 접근 토큰이 필요하다. 이 저장소에서는 처음에 이 방식을 사용했고,
+  4-8의 `git config --list` 출력에 남은 주소가 그 흔적이다.
+- SSH 방식은 주소가 `git@github.com:...` 형태이며, 미리 등록한 열쇠 한 쌍으로
+  인증한다. 매번 토큰을 입력하지 않아도 되고 토큰 만료 문제가 없다.
+- 따라서 이 저장소를 다른 환경에서 그대로 복제할 때는, SSH 키를 등록하지 않은
+  환경이라면 HTTPS 주소로 복제해야 한다.
+- 보안 습관: 열쇠 한 쌍 중 공개 키(`.pub`)만 GitHub에 등록하고,
+  개인 키는 어떤 경우에도 저장소·문서·화면 캡처에 노출하지 않는다.
+  캡처에 포함된 공개 키 문자열도 일부를 가려 첨부했다.
+
+---
+
+# 3부. 캡처해야 할 항목 (6장)
+
+| 파일명 | 무엇을 찍나 | 반드시 함께 보여야 할 것 |
+|---|---|---|
+| `images/compose-up.png` | `docker compose up -d --build` 직후 `docker compose ps` 출력 | 명령 입력 + 출력 |
+| `images/compose-web-8090.png` | 브라우저 `localhost:8090` 접속 화면 | 주소창(포트 포함) |
+| `images/compose-network.png` | helper에서 web으로 wget 성공 화면 | 명령 입력 + 응답 내용 |
+| `images/compose-env-changed.png` | `.env` 변경 후 `docker compose ps`와 `localhost:8091` 화면 | 포트 표기 변화 / 주소창 |
+| `images/ssh-test.png` | `ssh -T git@github.com` 성공 메시지와 `git remote -v` | 명령 입력 + 출력 |
+| `images/github-ssh-key.png` | GitHub의 SSH 키 등록 목록 화면 | 키 문자열은 일부 가리기 |
+
+---
+
+# 4부. 체크리스트·검증표에 추가할 줄
+
+`## 3. 수행 체크리스트` 맨 아래에 추가:
+
+```markdown
+### 보너스 과제 (선택)
+- [x] Docker Compose 기초 — 단일 서비스 실행
+- [x] Compose 멀티 컨테이너 — 컨테이너 간 통신 확인
+- [x] Compose 운영 명령 — up / down / ps / logs
+- [x] 환경 변수 주입으로 포트·모드 변경
+- [x] GitHub SSH 키 설정 및 푸시 확인
+```
+
+`## 5. 검증 방법 요약` 표 맨 아래에 추가:
+
+```markdown
+| Compose 실행 | docker compose up -d --build, ps | 8-1, images/compose-up.png |
+| 컨테이너 간 통신 | compose exec helper wget http://web:내부포트 | 8-2, images/compose-network.png |
+| Compose 운영 | up / ps / logs / down | 8-3 로그 |
+| 환경 변수 주입 | .env 변경 후 재기동, ps의 포트 변화 | 8-4, images/compose-env-changed.png |
+| SSH 인증 전환 | ssh -T git@github.com, git remote -v | 8-5, images/ssh-test.png |
+```
+
+## 9. 부록
 
 컨테이너는 Linux 네임스페이스를 이용해 프로세스, 네트워크, 마운트 지점 등을 서로 격리한다. 포트 매핑으로 호스트 포트를 공개하면 외부 네트워크에서도 접근 가능해질 수 있으므로, 필요하지 않은 포트는 공개하지 않고 로컬 테스트만 필요할 때는 127.0.0.1:8080:80처럼 바인딩 범위를 제한한다.
 

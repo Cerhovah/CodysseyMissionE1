@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    image: mission1-web-compose:1.0
+    container_name: compose-web
+    environment:
+      NGINX_PORT: ${NGINX_PORT}
+      APP_ENV: ${APP_ENV}
+    ports:
+      - "${HOST_PORT}:${NGINX_PORT}"
+    volumes:
+      - ./templates:/etc/nginx/templates:ro
+
+  helper:
+    image: alpine:latest
+    container_name: compose-helper
+    command: tail -f /dev/null
+    depends_on:
+      - web
