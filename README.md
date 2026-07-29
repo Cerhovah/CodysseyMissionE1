@@ -6,7 +6,7 @@
 개발 환경을 만드는 것이 이 미션의 목표다.
 정적 웹 서버를 컨테이너로 만들어 포트 매핑, 바인드 마운트, 볼륨 영속성을
 실행 결과(로그·접속 화면·데이터 유지)로 직접 검증했고,
-수행 중 실제로 발생한 오류 4건을 원인 분석과 함께 기록했다.
+수행 중 실제로 발생한 오류 5건을 원인 분석과 함께 기록했다.
 보너스 과제로 Docker Compose 4종과 GitHub SSH 키 설정까지 수행했다.
 모든 명령·출력·화면 증거는 이 문서에서 확인할 수 있다.
 
@@ -91,7 +91,8 @@ CodysseyMissionE1/
 
 ## 6. 수행 로그
 
-> 로그는 실제 터미널 기록에서 발췌한 것이다. 단순 오타 재입력 줄은 제외했고,
+> 로그는 실제 터미널 기록에서 발췌한 것이다. 명령을 잘못 입력해 다시 친 줄
+> (예: 명령어 오타로 `command not found`가 난 줄)은 제외했고,
 > 실습에 의미가 있는 오류(권한 거부, 포트 충돌, 인증 실패 등)는 그대로 남겼다.
 >
 > 개인정보 보호를 위해 계정명과 홈 경로는 `[user]`, `[host]`로 치환했고
@@ -131,18 +132,22 @@ drwxr-xr-x  6 [user]  [user]  192  7 28 13:45 ..
 /Users/[user]/CodysseyMissionE1/practice
 ```
 
-위 로그에서 `touch`로 만든 파일은 비어 있으므로 `cat`의 출력도 비어 있다.
-파일에 내용이 있을 때의 확인 결과도 함께 남기기 위해 다음을 추가로 수행했다.
+위 로그의 `cat memo.txt`에 출력이 없는 것은 `touch`로 만든 파일이 비어 있기 때문이다.
+파일에 내용이 있을 때도 정상적으로 읽히는지 확인하기 위해 다음을 추가로 수행했다.
 
 ```
-ljh9512060277@c4r5s5 CodysseyMissionE1 % cd practice
-ljh9512060277@c4r5s5 practice % echo "hello codyssey" > memo.txt
-ljh9512060277@c4r5s5 practice % cat memo.txt
+[user]@[host] CodysseyMissionE1 % cd practice
+[user]@[host] practice % echo "hello codyssey" > memo.txt
+[user]@[host] practice % cat memo.txt
 hello codyssey
-ljh9512060277@c4r5s5 practice % ls -l memo.txt
--rw-r--r--  1 ljh9512060277  ljh9512060277  15  7 29 18:47 memo.txt
-ljh9512060277@c4r5s5 practice % cd ..
+[user]@[host] practice % ls -l memo.txt
+-rw-r--r--  1 [user]  [user]  15  7 29 18:47 memo.txt
+[user]@[host] practice % cd ..
 ```
+
+`>`는 명령의 출력을 화면 대신 파일로 보내는 기호이며, 기존 내용을 덮어쓴다.
+`cat`으로 내용이 출력되는 것과 별개로 `ls -l`의 크기가 0에서 15바이트로 바뀐 것까지
+확인해, 화면 표시가 아니라 파일에 실제로 저장되었음을 검증했다.
 
 절대 경로는 `/`부터 시작하는 전체 주소이고, 상대 경로는 현재 위치 기준의 길 안내다.
 `/tmp`는 어디서 입력해도 같은 곳으로 이동하지만, `./practice`는 서 있는 위치에 따라
@@ -179,6 +184,8 @@ cd: permission denied: secret
 ![권한 거부 오류 화면](images/permission-denied.png)
 
 권한 표기의 변경 전/후는 `ls -l`(파일)과 `ls -ld`(디렉토리)로 확인했다.
+`ls -l`은 파일의 상세 정보를, `ls -ld`는 디렉토리 자체의 정보를 보여 준다
+(`-d` 없이 디렉토리에 쓰면 그 안의 내용 목록이 나온다).
 
 ```
 [user]@[host] CodysseyMissionE1 % chmod 644 hello.sh
@@ -203,7 +210,8 @@ drwxr-xr-x  2 [user]  [user]  64  7 28 16:13 secret
 숫자로 표기한다. 755는 "소유자는 전부(rwx), 나머지는 읽기와 실행만(r-x)",
 644는 "소유자는 읽고 쓰기(rw-), 나머지는 읽기만(r--)"이라는 뜻이다.
 디렉토리에서 실행(x) 권한은 "그 안으로 들어갈 수 있음"을 의미하며,
-위 로그에서 644로 낮춘 폴더에 `cd`가 거부된 것이 그 증거다.
+위 로그에서 644로 낮춘 폴더에 `cd`가 거부되고, 755로 되돌리자 들어가진 것이 그 증거다.
+맨 앞 한 글자는 종류를 뜻해 파일은 `-`, 디렉토리는 `d`로 표시된다.
 
 대상별 권한 선택 기준: 직접 실행해야 하는 스크립트에는 실행 권한이 필요하므로 755를,
 읽히기만 하면 되는 정적 파일(HTML, 설정 등)에는 644를 사용했다.
@@ -240,7 +248,8 @@ Server:
 데몬 상태 요약: `docker info`가 오류 없이 **Server** 항목을 출력했고
 Server Version(28.5.2), Containers, Images 값이 정상 표시되므로 Docker 데몬이
 동작 중임을 확인했다. Context가 `orbstack`으로 표시되어, sudo 없이 OrbStack이
-엔진을 구동하고 있음도 함께 확인된다.
+엔진을 구동하고 있음도 함께 확인된다. 데몬이 꺼져 있으면 이 명령은 정보 대신
+`Cannot connect to the Docker daemon` 오류를 낸다.
 
 ### 6-4. 컨테이너 실습 (hello-world / ubuntu / attach·exec 차이)
 
@@ -278,6 +287,7 @@ f36c1ebb72ee   hello-world   "/hello"   11 seconds ago   Exited (0) 11 seconds a
 `docker ps`에는 아무것도 없지만 `docker ps -a`에는 실행을 마치고 종료된 컨테이너가
 `Exited (0)` 상태로 남는다. 즉 이미지는 창고에 보관되고, 컨테이너는 실행이 끝나도
 기록으로 남는다는 점이 두 명령의 출력 차이로 드러난다.
+`--name`을 주지 않으면 Docker가 `brave_diffie`처럼 이름을 자동으로 붙인다.
 
 ```
 [user]@[host] CodysseyMissionE1 % docker run -it --name ub1 ubuntu bash
@@ -307,40 +317,49 @@ d8ccc4e382e2   ub2       0.00%     1.93MiB / 15.67GiB   0.01%     1.13kB / 126B 
 ```
 
 여기까지 확인된 것은 두 가지다. `run -it`로 들어간 ub1은 내가 곧 컨테이너의 본체
-작업이므로 `exit` 시 함께 종료되어 `Exited`로 남았고, 배경 실행 후 `exec`로 들어간
-ub2는 별도 프로세스로 들어간 것이라 빠져나와도 `Up` 상태를 유지했다.
+작업이므로 `exit` 시 함께 종료되어 `Exited`로 남았고, 배경 실행(`-d`) 후 `exec`로
+들어간 ub2는 별도 프로세스로 들어간 것이라 빠져나와도 `Up` 상태를 유지했다.
+`ub2`의 본체 작업을 `sleep infinity`로 준 이유는, 아무 일도 하지 않으면서 컨테이너가
+꺼지지 않게 유지하기 위해서다.
 
-`attach`의 동작은 서술만으로는 확인되지 않으므로 별도 컨테이너(ub3)로 직접 검증했다.
-같은 `attach`라도 빠져나오는 방법에 따라 결과가 달라지는지가 확인 대상이다.
+`attach`는 위 두 경우와 또 다르므로, 별도 컨테이너(ub3)를 만들어 직접 검증했다.
+확인 대상은 "같은 attach라도 빠져나오는 방법에 따라 결과가 달라지는가"이다.
+Docker의 기본 분리 키는 Ctrl+P, Ctrl+Q이지만 편집기 통합 터미널이 이 조합을 가로채는
+문제가 있어 `--detach-keys="ctrl-x"`로 분리 키를 바꿔 수행했다(트러블슈팅 사례 5).
 
 ```
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker stop ub3
-docker stub3
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker attach --detach-keys="ctrl-x" ub3
-You cannot attach to a stopped container, start it first
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker start ub3
+[user]@[host] CodysseyMissionE1 % docker stop ub3
 ub3
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker attach --detach-keys="ctrl-x" ub3
+[user]@[host] CodysseyMissionE1 % docker attach --detach-keys="ctrl-x" ub3
+You cannot attach to a stopped container, start it first
+[user]@[host] CodysseyMissionE1 % docker start ub3
+ub3
+[user]@[host] CodysseyMissionE1 % docker attach --detach-keys="ctrl-x" ub3
 root@ae0a1020074e:/# echo "attach test"
 attach test
 root@ae0a1020074e:/# read escape sequence
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker ps --filter "name=ub3"
+[user]@[host] CodysseyMissionE1 % docker ps --filter "name=ub3"
 CONTAINER ID   IMAGE     COMMAND   CREATED         STATUS          PORTS     NAMES
 ae0a1020074e   ubuntu    "bash"    8 minutes ago   Up 37 seconds             ub3
-ljh9512060277@c4r5s5 CodysseyMissionE1 % dockerattach --detach-keys="ctrl-x" ub3
-zsh: command not found: dockerattach
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker attach --detach-keys="ctrl-x" ub3
+[user]@[host] CodysseyMissionE1 % docker attach --detach-keys="ctrl-x" ub3
 root@ae0a1020074e:/# exit
 exit
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker ps -a --filter "name=ub3"
+[user]@[host] CodysseyMissionE1 % docker ps -a --filter "name=ub3"
 CONTAINER ID   IMAGE     COMMAND   CREATED         STATUS                     PORTS     NAMES
 ae0a1020074e   ubuntu    "bash"    9 minutes ago   Exited (0) 5 seconds ago             ub3
 ```
 
+로그를 읽는 순서는 이렇다. 멈춰 있는 컨테이너에는 붙을 수 없다는 오류로 시작해
+(`You cannot attach to a stopped container`), `docker start`로 켠 뒤 붙었다.
+컨테이너 안에서 명령을 실행한 다음 분리 키를 누르자 `read escape sequence`가 출력되며
+호스트로 돌아왔고, 이때 `docker ps`에는 여전히 `Up 37 seconds`로 살아 있다.
+같은 컨테이너에 다시 붙어 이번에는 `exit`을 입력하자 `docker ps -a`에서
+`Exited (0)`로 바뀌었다. 분리 키와 `exit`의 결과가 정반대라는 것이 이 실험의 결론이다.
+
 정리: `exec`는 컨테이너에 별도의 프로세스를 새로 띄워 들어가는 방식이라 빠져나와도
 컨테이너가 유지된다. `attach`는 컨테이너의 본체 작업에 직접 연결하는 방식이라,
-분리 키(Ctrl+P, Ctrl+Q)로 나오면 유지되지만 본체를 종료(`exit`)하면 컨테이너도 함께
-종료된다. 운영 중인 컨테이너를 점검할 때 `exec`를 쓰는 이유가 여기에 있다.
+분리 키로 나오면 유지되지만 본체를 종료(`exit`)하면 컨테이너도 함께 종료된다.
+운영 중인 컨테이너를 점검할 때 `exec`를 쓰는 이유가 여기에 있다.
 
 ### 6-5. 커스텀 이미지 (Dockerfile)
 
@@ -361,12 +380,15 @@ COPY site/ /usr/share/nginx/html/
 2. `ENV` — 환경 변수를 심어 설정과 코드를 분리하는 구조를 연습
 3. `COPY` — nginx 기본 페이지를 직접 만든 정적 페이지(site/)로 교체
 
+`COPY`의 목적지 `/usr/share/nginx/html/`은 nginx가 웹 페이지를 찾는 기본 위치이며,
+이 경로에 파일을 넣는 것만으로 기본 환영 페이지가 교체된다.
+
 이미지 태그 규칙: `my-web:1.0`처럼 "이름:버전" 형식을 사용했다.
 기능이 추가되면 1.1, 기존 사용 방식이 깨지면 2.0으로 올린다는 기준이며,
 `latest`는 어느 시점의 이미지인지 특정되지 않아 재현성이 떨어지므로 사용하지 않았다.
 
-빌드 컨텍스트를 줄이고 이미지에 불필요한 파일이 들어가지 않도록 `.dockerignore`를 두어
-`.git`, `images/`, `practice/`, 문서 파일 등을 제외했다.
+빌드 컨텍스트(빌드 시 Docker에 전달되는 파일 묶음)를 줄이고 이미지에 불필요한 파일이
+들어가지 않도록 `.dockerignore`를 두었다.
 
 빌드 로그:
 
@@ -383,6 +405,7 @@ COPY site/ /usr/share/nginx/html/
  => => naming to docker.io/library/my-web:1.0                                 0.0s
 ```
 
+명령 끝의 점(`.`)은 "현재 폴더를 빌드 재료로 사용하라"는 뜻이다.
 `CACHED`는 이전 빌드와 동일한 단계를 다시 굽지 않고 재사용했다는 표시다.
 따라서 `site/` 내용을 바꾼 뒤 이미지에 반영하려면 다시 빌드해야 하며,
 빌드 없이 즉시 반영이 필요할 때는 6-7의 바인드 마운트를 사용한다.
@@ -391,6 +414,8 @@ COPY site/ /usr/share/nginx/html/
 
 같은 이미지로 컨테이너 두 개를 서로 다른 포트(8080, 8081)에 실행하고,
 curl과 브라우저 양쪽에서 접속을 확인했다.
+`-p 8080:80`에서 콜론 왼쪽은 호스트(내 컴퓨터) 포트, 오른쪽은 컨테이너 안에서
+nginx가 실제로 듣고 있는 포트다.
 
 ```
 [user]@[host] CodysseyMissionE1 % docker run -d -p 8080:80 --name my-web-8080 my-web:1.0
@@ -442,12 +467,15 @@ f47b01e69bf0   my-web-8081   0.00%     6.02MiB / 15.67GiB    0.04%     2.83kB / 
 9992a5bb108d   my-web-8080   0.00%     5.324MiB / 15.67GiB   0.03%     3.29kB / 1.61kB   10.2MB / 8.19kB   7
 ```
 
+로그 마지막 두 줄은 접속 기록이다. `GET /`은 대문 페이지 요청, `200`은 성공,
+`304`는 "이전과 내용이 같으니 갖고 있는 것을 쓰라"는 응답이며, 줄 끝의 `curl`과
+`Chrome` 표기로 각각 명령줄과 브라우저에서 들어온 요청임을 구분할 수 있다.
+
 컨테이너는 격리된 실행 공간이라 바깥에서 직접 접근할 수 없고, 호스트 포트와
 컨테이너 포트를 연결(매핑)해야 접속이 된다. 이 격리는 리눅스 커널의 네임스페이스
 기능으로 구현되며, 프로세스·네트워크·파일 구조 목록을 컨테이너마다 별도로 부여한다.
 각 컨테이너가 자기만의 80번 포트를 가질 수 있는 것(두 nginx가 충돌하지 않은 이유)과,
 바깥에서 접근하려면 매핑이 필요한 것(포트 매핑이 필요한 이유)이 모두 여기서 나온다.
-로그의 접속 기록(curl, Chrome)이 매핑이 실제로 동작했다는 증거이며,
 같은 이미지 하나로 8080과 8081에 두 개를 나란히 띄울 수 있는 것 자체가
 격리와 포트 매핑의 증명이다.
 
@@ -466,6 +494,9 @@ f47b01e69bf0   my-web-8081   0.00%     6.02MiB / 15.67GiB    0.04%     2.83kB / 
 c18ba5971f366ccf8c91486b9c159170ec5d04bdad2bd13e091e8980d5f8c1ba
 ```
 
+`-v` 뒤의 값은 "호스트 경로:컨테이너 경로" 형식이며, `$(pwd)`는 명령을 실행한 시점의
+현재 폴더를 절대 경로로 바꿔 넣는 표기다.
+
 변경 전(버전 v2 상태):
 
 ![마운트 변경 전 — 8082, v2](images/mount-before.png)
@@ -481,21 +512,35 @@ c18ba5971f366ccf8c91486b9c159170ec5d04bdad2bd13e091e8980d5f8c1ba
 같은 검증을 명령과 응답 텍스트로도 다시 수행했다.
 
 ```
-ljh9512060277@c4r5s5 CodysseyMissionE1 % pwd
-/Users/ljh9512060277/CodysseyMissionE1
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker ps -a --filter "name=my-web-live"
+[user]@[host] CodysseyMissionE1 % pwd
+/Users/[user]/CodysseyMissionE1
+[user]@[host] CodysseyMissionE1 % docker ps -a --filter "name=my-web-live"
 CONTAINER ID   IMAGE          COMMAND                   CREATED        STATUS         PORTS                                     NAMES
 c18ba5971f36   nginx:alpine   "/docker-entrypoint.…"   28 hours ago   Up 7 minutes   0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   my-web-live
-ljh9512060277@c4r5s5 CodysseyMissionE1 % curl -s http://localhost:8082 | grep 버전
+[user]@[host] CodysseyMissionE1 % curl -s http://localhost:8082 | grep 버전
   <p>날짜: 2026-07-28 / 버전: v3</p>
-ljh9512060277@c4r5s5 CodysseyMissionE1 % sed -i '' 's/버전: v3/버전: v4/' site/index.html
-ljh9512060277@c4r5s5 CodysseyMissionE1 % curl -s http://localhost:8082 | grep 버전
+[user]@[host] CodysseyMissionE1 % sed -i '' 's/버전: v3/버전: v4/' site/index.html
+[user]@[host] CodysseyMissionE1 % curl -s http://localhost:8082 | grep 버전
   <p>날짜: 2026-07-28 / 버전: v4</p>
-ljh9512060277@c4r5s5 CodysseyMissionE1 % sed -i '' 's/버전: v4/버전: v3/' site/index.html
-ljh9512060277@c4r5s5 CodysseyMissionE1 % curl -s http://localhost:8082 | grep 버전
+[user]@[host] CodysseyMissionE1 % sed -i '' 's/버전: v4/버전: v3/' site/index.html
+[user]@[host] CodysseyMissionE1 % curl -s http://localhost:8082 | grep 버전
   <p>날짜: 2026-07-28 / 버전: v3</p>
-  [{"Type":"bind","Source":"/Users/ljh9512060277/CodysseyMissionE1/site","Destination":"/usr/share/nginx/html","Mode":"","RW":true,"Propagation":"rprivate"}]
+[user]@[host] CodysseyMissionE1 % docker inspect my-web-live --format '{{json .Mounts}}'
+[{"Type":"bind","Source":"/Users/[user]/CodysseyMissionE1/site","Destination":"/usr/share/nginx/html","Mode":"","RW":true,"Propagation":"rprivate"}]
 ```
+
+사용한 표기의 뜻은 다음과 같다.
+`curl -s`는 진행률 표시를 감추고 응답 본문만 받는 옵션이고,
+`|`(파이프)는 왼쪽 명령의 출력을 오른쪽 명령의 입력으로 넘기는 기호라
+`grep 버전`이 응답 중 '버전'이 들어간 줄만 걸러 준다.
+`sed -i '' 's/찾을문자/바꿀문자/' 파일`은 파일 안의 문자열을 직접 치환하는 명령이며,
+`-i` 뒤의 빈 따옴표는 백업 파일을 만들지 않겠다는 macOS 표기다.
+
+핵심은 이미지를 다시 빌드하거나 컨테이너를 재시작하지 않았는데도 응답이
+v3 → v4 → v3으로 따라 바뀌었다는 점이다. 마지막 `docker inspect` 결과의
+`"Type":"bind"`와 Source/Destination 값이 호스트 폴더와 컨테이너 경로가 실제로
+연결되어 있음을 보여 준다. 문서와 화면 증거의 상태를 일치시키기 위해
+검증 후 파일은 v3으로 되돌렸다.
 
 **볼륨 영속성** — 볼륨을 만들어 컨테이너에 연결하고, 컨테이너를 완전히 삭제한 뒤
 새 컨테이너에서 데이터가 살아 있는지 확인했다.
@@ -516,8 +561,11 @@ keeper
 컨테이너가 삭제되어도 남는 기록
 ```
 
+`-v mission-data:/data`는 바인드 마운트와 형식은 같지만 콜론 왼쪽이 폴더 경로가 아니라
+볼륨 이름이라는 점이 다르다. `docker rm -f`는 실행 중인 컨테이너도 강제로 삭제한다.
+
 볼륨은 도커가 관리하는 별도 저장 공간이라 컨테이너보다 오래 산다.
-keeper를 삭제(`rm -f`)했는데도 keeper2에서 같은 데이터가 읽히는 마지막 출력이 그 증거다.
+keeper를 삭제했는데도 keeper2에서 같은 데이터가 읽히는 마지막 출력이 그 증거다.
 바인드 마운트는 개발 편의(수정 즉시 반영)용, 볼륨은 데이터 보존용이라는 점이 둘의 차이다.
 
 관리 관점 보완(백업): 볼륨의 영속성은 백업을 의미하지 않는다. 볼륨은 도커 관리 영역에
@@ -554,8 +602,13 @@ branch.main.remote=origin
 branch.main.merge=refs/heads/main
 ```
 
-GitHub 저장소를 VSCode로 복제(clone)하여 작업했고, 커밋·푸시가 GitHub에
-정상 반영되는 것으로 연동을 확인했다.
+`--global`은 이 컴퓨터의 모든 저장소에 적용되는 설정이라는 뜻이고,
+`init.defaultBranch main`은 새로 만드는 저장소의 기본 갈래(브랜치) 이름을 정한다.
+출력의 `remote.origin.url`은 이 저장소가 연결된 원격 주소이며,
+`branch.main.remote=origin`은 로컬 main 갈래가 그 원격과 짝지어져 있다는 뜻이다.
+
+GitHub 저장소를 VSCode로 복제(clone)하여 작업했고, 편집기에서 GitHub 계정으로
+로그인한 상태에서 커밋·푸시가 GitHub에 정상 반영되는 것으로 연동을 확인했다.
 
 VSCode 계정 연동 화면:
 
@@ -565,44 +618,35 @@ VSCode 계정 연동 화면:
 
 ![GitHub 커밋 목록](images/github-commits.png)
 
-실제 변경 기록·전송 과정도 명령 단위로 남긴다.
-
-```
-[보충 D: git 작업 로그 붙여넣기
- - git status        (변경 파일 목록)
- - git add .
- - git commit -m "..."   (파일 개수/변경 줄 수 요약 출력)
- - git push              (전송 결과)
- - git status            (nothing to commit, working tree clean) ]
-```
+단계별로 작업을 나눠 커밋했으므로, 이 저장소의 커밋 이력 자체가 수행 순서와
+변경 내역에 대한 추가 증거가 된다(저장소 상단의 Commits에서 확인 가능).
+SSH 방식으로 전환한 뒤의 실제 전송 로그는 10-5에 있다.
 
 Git은 내 컴퓨터에서 변경 이력을 기록·되돌리기 하는 도구이고, GitHub는 그 기록을
-올려 공유·협업하는 원격 플랫폼이다. 이 저장소의 커밋 이력 자체가 단계별 수행 순서의
-기록이기도 하다. 인증 방식은 처음 HTTPS로 시작해 보너스 과제에서 SSH로 전환했으며,
-그 차이는 10-5에 정리했다.
+올려 공유·협업하는 원격 플랫폼이다. 인증 방식은 처음 HTTPS로 시작해 보너스 과제에서
+SSH로 전환했으며, 그 차이는 10-5에 정리했다.
 
 ## 7. 검증 방법 요약
 
-| 확인 대상 | 사용한 명령/방법 | 증거 위치 |
+| 확인 대상 | 사용한 명령/방법 | 결과 위치 |
 |---|---|---|
-| 터미널 기본 조작 | pwd, ls -la, mkdir, cp, mv, rm, cat, touch | 6-1 로그 |
-| 파일 내용 확인 | echo로 내용 작성 후 cat | 6-1 보충 A |
-| 절대/상대 경로 | cd /tmp ↔ cd ./practice 비교 | 6-1 로그 |
-| 권한 전/후 | ls -l / ls -ld, chmod 644·755 | 6-2 로그, images/permission-denied.png |
-| Docker 데몬 동작 | docker --version, docker info | 6-3 로그 |
-| 컨테이너 상태/자원 | docker ps, ps -a, stats | 6-4·6-6 로그 |
-| attach / exec 차이 | attach 후 분리키 vs exit 비교 | 6-4 보충 B |
-| 이미지 빌드 | docker build -t my-web:1.0 . | 6-5 로그 |
-| 웹 접속(포트 매핑) | curl, 브라우저, docker logs | 6-6 로그, images/port-8080.png, port-8081.png |
-| 마운트 반영 | 파일 수정 후 curl 응답 변화 + 새로고침 | 6-7 보충 C, images/mount-before.png, mount-after.png |
-| 볼륨 영속성 | 컨테이너 삭제 전/후 cat | 6-7 로그 |
-| Git 이력·전송 | git status / add / commit / push | 6-8 보충 D |
-| GitHub 연동 | git config --list, 커밋 반영 확인 | 6-8, images/vscode-github.png, github-commits.png |
+| 터미널 기본 조작 | pwd, ls -la, mkdir, cp, mv, rm, cat, touch | 6-1 |
+| 파일 내용 확인 | echo로 내용 작성 후 cat, ls -l로 크기 확인 | 6-1 |
+| 절대/상대 경로 | cd /tmp ↔ cd ./practice 비교 | 6-1 |
+| 권한 전/후 | ls -l / ls -ld, chmod 644·755 | 6-2, images/permission-denied.png |
+| Docker 데몬 동작 | docker --version, docker info | 6-3 |
+| 컨테이너 상태/자원 | docker ps, ps -a, stats | 6-4, 6-6 |
+| attach / exec 차이 | attach 후 분리 키 vs exit 비교 | 6-4 |
+| 이미지 빌드 | docker build -t my-web:1.0 . | 6-5 |
+| 웹 접속(포트 매핑) | curl, 브라우저, docker logs | 6-6, images/port-8080.png, port-8081.png |
+| 마운트 반영 | 파일 수정 후 curl 응답 변화, docker inspect | 6-7, images/mount-before.png, mount-after.png |
+| 볼륨 영속성 | 컨테이너 삭제 전/후 cat | 6-7 |
+| GitHub 연동 | git config --list, 커밋 이력 반영 확인 | 6-8, images/vscode-github.png, github-commits.png |
 | Compose 실행 | docker compose up -d --build, ps | 10-1, images/compose-up.png |
 | 컨테이너 간 통신 | compose exec helper wget http://web:8080 | 10-2, images/compose-network.png |
-| Compose 운영 | up / ps / logs / down | 10-3 로그 |
+| Compose 운영 | up / ps / logs / down | 10-3 |
 | 환경 변수 주입 | .env 변경 후 재기동, ps의 포트 변화 | 10-4, images/compose-web-8091.png |
-| SSH 인증 전환 | ssh -T git@github.com, git remote -v | 10-5, images/ssh-auth.png, ssh-remote-push.png |
+| SSH 인증 전환 | ssh -T git@github.com, git remote -v, git push | 10-5, images/ssh-auth.png, ssh-remote-push.png |
 
 ## 8. 트러블슈팅
 
@@ -637,7 +681,8 @@ Git은 내 컴퓨터에서 변경 이력을 기록·되돌리기 하는 도구�
   (images/port-8080.png 등에서 확인 가능).
 - 원인 가설: HTML 닫는 태그의 문법 오류.
 - 확인: `site/index.html` 5행이 `<h1>CODYSSEYMISSIONE1/h1>`로,
-  닫는 태그의 `<`가 누락된 것을 확인.
+  닫는 태그의 `<`가 누락된 것을 확인. 브라우저는 태그로 인식하지 못한 문자열을
+  그대로 화면에 출력한다.
 - 해결/대안: `</h1>`로 수정하고 버전 표기를 v3으로 갱신.
 - 검증: 바인드 마운트로 연결된 8082 컨테이너에서 새로고침만으로 수정이 반영되어
   `/h1>` 표기가 사라진 것을 확인(images/mount-after.png).
@@ -659,6 +704,21 @@ Git은 내 컴퓨터에서 변경 이력을 기록·되돌리기 하는 도구�
   `Hi Cerhovah! You've successfully authenticated...`를 출력하고,
   원격 주소를 SSH로 바꾼 뒤 `git push`가 정상 동작하는 것을 확인(10-5).
 
+### 사례 5: attach 분리 키(Ctrl+P, Ctrl+Q)가 동작하지 않음
+
+- 문제: `docker attach`로 컨테이너에 붙은 뒤 기본 분리 키인 Ctrl+P, Ctrl+Q를
+  눌러도 호스트로 돌아오지 않고 컨테이너 프롬프트(`root@…:/#`)가 유지되었다.
+  그 상태에서 입력한 명령이 호스트가 아닌 컨테이너 안에서 실행되었다.
+- 원인 가설: 편집기의 통합 터미널이 Ctrl+P를 자체 단축키로 가로채어
+  Docker 클라이언트까지 신호가 전달되지 않았다.
+- 확인: 새 터미널 탭에서 `docker ps --filter "name=ub3"`로 컨테이너가 여전히
+  `Up` 상태이고, 기존 탭만 붙어 있는 상태임을 확인.
+- 해결/대안: Docker가 제공하는 분리 키 변경 옵션을 사용해
+  `docker attach --detach-keys="ctrl-x" ub3`로 실행. 충돌하지 않는 조합으로 바꾸면
+  Ctrl+X 한 번으로 분리된다.
+- 검증: 분리 시 `read escape sequence`가 출력되며 호스트 프롬프트로 돌아왔고,
+  `docker ps`에서 컨테이너가 `Up`으로 유지된 것을 확인(6-4).
+
 ## 9. 재현 시 주의사항
 
 - 로그의 계정명·홈 경로는 `[user]`, `[host]`로 치환했다. 다른 환경에서는 각자의
@@ -669,6 +729,8 @@ Git은 내 컴퓨터에서 변경 이력을 기록·되돌리기 하는 도구�
   꺼져 있으면 `Cannot connect to the Docker daemon` 오류가 발생한다.
 - 8080~8082, 8090~8091 포트가 이미 사용 중인 환경에서는 `-p` 왼쪽 값 또는
   `.env`의 `HOST_PORT`를 다른 번호로 바꾸면 된다(사례 2 참고).
+- `docker attach`의 분리 키가 편집기 단축키와 충돌할 수 있으므로,
+  필요하면 `--detach-keys` 옵션으로 바꿔 사용한다(사례 5 참고).
 - 캠퍼스 환경은 sudo 제한으로 OrbStack을 사용했으나, 본 문서의 docker 명령은
   표준 명령이므로 일반 Docker 환경에서도 동일하게 재현된다.
 - 보너스의 SSH 방식은 키를 등록한 환경에서만 동작한다. 키를 등록하지 않은 환경에서는
@@ -706,6 +768,11 @@ services:
       - web
 ```
 
+각 항목의 뜻은 다음과 같다. `build: .`은 현재 폴더의 Dockerfile로 이미지를 직접
+굽는다는 뜻이고, `${NGINX_PORT}`처럼 달러와 중괄호로 쓴 값은 `.env` 파일에서 가져온다.
+`:ro`는 읽기 전용 연결, `command: tail -f /dev/null`은 아무 일도 하지 않으면서
+컨테이너가 꺼지지 않게 유지하는 방법, `depends_on`은 시작 순서 지정이다.
+
 `.env` — 실행 설정을 코드 바깥으로 분리한 파일이다.
 
 ```
@@ -730,8 +797,8 @@ server {
 
 nginx 공식 이미지는 시작할 때 `/etc/nginx/templates/*.template` 파일의 환경 변수를 채워
 `/etc/nginx/conf.d/`로 내보낸다. 덕분에 이미지를 다시 빌드하지 않고 환경 변수만 바꿔
-수신 포트를 변경할 수 있다. 6-6의 `docker logs` 출력에 보이는
-`20-envsubst-on-templates.sh`가 이 작업을 수행하는 스크립트다.
+수신 포트를 변경할 수 있다. 이 작업을 수행하는 스크립트가
+`20-envsubst-on-templates.sh`이며, 10-3의 로그에서 실제로 실행된 것을 확인할 수 있다.
 
 `.env`에는 비밀값이 없어 재현성을 위해 저장소에 포함했다. 다만 실제 프로젝트에서
 `.env`에 토큰·비밀번호가 들어가는 경우에는 `.gitignore`로 제외하고,
@@ -766,6 +833,10 @@ compose-web      mission1-web-compose:1.0   "/docker-entrypoint.…"   web      
 ```
 
 ![Compose 실행 및 상태 확인](images/compose-up.png)
+
+`up -d`는 배경 실행, `--build`는 실행 전에 이미지를 다시 굽는 옵션이다.
+출력의 `Network … Created`에서 보이듯 Compose는 서비스들을 담을 전용 네트워크도
+함께 만들어 주는데, 이것이 10-2의 컨테이너 간 통신이 가능한 이유다.
 
 호스트 포트로 접속해 정상 응답을 확인했다.
 
@@ -819,6 +890,8 @@ wget: can't connect to remote host: Connection refused
 
 ![컨테이너 간 통신 확인](images/compose-network.png)
 
+`wget -qO-`는 내려받은 내용을 파일로 저장하지 않고 화면에 그대로 출력하라는 옵션이다.
+
 관찰 결과 정리:
 
 - helper에서 `http://web`으로 접속된다. Compose가 서비스마다 기본 네트워크와 이름을
@@ -832,39 +905,37 @@ wget: can't connect to remote host: Connection refused
 
 ### 10-3. Compose 운영 명령 — 상태 확인 루틴
 
+실행(`up`) → 상태 확인(`ps`) → 로그 확인(`logs`) → 정리(`down`) 순으로 사용했다.
+
 ```
-[보충 E: docker compose logs web --tail 15 출력 붙여넣기]
-```
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker compose up -d --build
-[+] Building 0.7s (9/9) FINISHED                                                                             
- => [internal] load local bake definitions                                                              0.0s
- => => reading from stdin 540B                                                                          0.0s
- => [internal] load build definition from Dockerfile                                                    0.1s
- => => transferring dockerfile: 156B                                                                    0.0s
- => [internal] load metadata for docker.io/library/nginx:alpine                                         0.0s
- => [internal] load .dockerignore                                                                       0.0s
- => => transferring context: 34B                                                                        0.0s
- => [internal] load build context                                                                       0.1s
- => => transferring context: 261B                                                                       0.0s
- => [1/2] FROM docker.io/library/nginx:alpine                                                           0.0s
- => CACHED [2/2] COPY site/ /usr/share/nginx/html/                                                      0.0s
- => exporting to image                                                                                  0.0s
- => => exporting layers                                                                                 0.0s
- => => writing image sha256:26f250b17b196819ccca16780c96d6c651422f7ab6a59f07f7c5c0c25891e69c            0.0s
- => => naming to docker.io/library/mission1-web-compose:1.0                                             0.0s
- => resolving provenance for metadata file                                                              0.0s
+[user]@[host] CodysseyMissionE1 % docker compose up -d --build
+[+] Building 0.7s (9/9) FINISHED
+ => [internal] load local bake definitions                                                    0.0s
+ => => reading from stdin 540B                                                                0.0s
+ => [internal] load build definition from Dockerfile                                          0.1s
+ => => transferring dockerfile: 156B                                                          0.0s
+ => [internal] load metadata for docker.io/library/nginx:alpine                               0.0s
+ => [internal] load .dockerignore                                                             0.0s
+ => => transferring context: 34B                                                              0.0s
+ => [internal] load build context                                                             0.1s
+ => => transferring context: 261B                                                             0.0s
+ => [1/2] FROM docker.io/library/nginx:alpine                                                 0.0s
+ => CACHED [2/2] COPY site/ /usr/share/nginx/html/                                            0.0s
+ => exporting to image                                                                        0.0s
+ => => writing image sha256:26f250b17b196819ccca16780c96d6c651422f7ab6a59f07f7c5c0c25891e69c  0.0s
+ => => naming to docker.io/library/mission1-web-compose:1.0                                   0.0s
 [+] Running 4/4
- ✔ mission1-web-compose:1.0           Built                                                             0.0s 
- ✔ Network codysseymissione1_default  Created                                                           0.1s 
- ✔ Container compose-web              Started                                                           0.5s 
- ✔ Container compose-helper           Started                                                           0.6s 
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker compose logs web --tail 15
+ ✔ mission1-web-compose:1.0           Built                                                   0.0s
+ ✔ Network codysseymissione1_default  Created                                                 0.1s
+ ✔ Container compose-web              Started                                                 0.5s
+ ✔ Container compose-helper           Started                                                 0.6s
+[user]@[host] CodysseyMissionE1 % docker compose logs web --tail 15
 compose-web  | 20-envsubst-on-templates.sh: Running envsubst on /etc/nginx/templates/default.conf.template to /etc/nginx/conf.d/default.conf
 compose-web  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
 compose-web  | /docker-entrypoint.sh: Configuration complete; ready for start up
 compose-web  | 2026/07/29 10:09:29 [notice] 1#1: using the "epoll" event method
 compose-web  | 2026/07/29 10:09:29 [notice] 1#1: nginx/1.31.3
-compose-web  | 2026/07/29 10:09:29 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
+compose-web  | 2026/07/29 10:09:29 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0)
 compose-web  | 2026/07/29 10:09:29 [notice] 1#1: OS: Linux 6.17.8-orbstack-00308-g8f9c941121b1
 compose-web  | 2026/07/29 10:09:29 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 20480:1048576
 compose-web  | 2026/07/29 10:09:29 [notice] 1#1: start worker processes
@@ -874,17 +945,21 @@ compose-web  | 2026/07/29 10:09:29 [notice] 1#1: start worker process 38
 compose-web  | 2026/07/29 10:09:29 [notice] 1#1: start worker process 39
 compose-web  | 2026/07/29 10:09:29 [notice] 1#1: start worker process 40
 compose-web  | 2026/07/29 10:09:29 [notice] 1#1: start worker process 41
-```
 [user]@[host] CodysseyMissionE1 % docker compose down
 [+] Running 3/3
- ✔ Container compose-helper            Removed                                10.3s
- ✔ Container compose-web               Removed                                10.3s
- ✔ Network codysseymissione1_default   Removed                                 0.1s
+ ✔ Container compose-helper            Removed                                               10.3s
+ ✔ Container compose-web               Removed                                               10.3s
+ ✔ Network codysseymissione1_default   Removed                                                0.1s
 [user]@[host] CodysseyMissionE1 % docker compose ps
 NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS
 ```
 
-운영 관점의 기본 루틴은 "무엇이 떠 있나(ps) → 정상인가(logs) → 정리(down)"이다.
+로그의 첫 줄이 10-0에서 설명한 템플릿 처리다.
+`default.conf.template`을 읽어 환경 변수를 채운 뒤 `default.conf`로 내보냈다는
+기록이며, 이것이 `.env`의 `NGINX_PORT` 값이 nginx 설정에 실제로 반영된 경로다.
+로그 앞에 붙는 `compose-web |` 표기는 어느 서비스에서 나온 로그인지 구분해 주는 것으로,
+`docker logs`와 달리 여러 서비스를 함께 볼 때 유용하다.
+
 `docker compose down`은 이 파일로 만든 컨테이너와 네트워크를 한 번에 정리하므로,
 개별 컨테이너를 하나씩 지우던 방식보다 실수가 적다. 위 출력에서 컨테이너 두 개와
 네트워크가 함께 제거되고, 이어진 `ps`의 목록이 비어 있는 것으로 정리 완료를 확인했다.
@@ -892,20 +967,21 @@ NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS
 
 ### 10-4. 환경 변수 활용 — 설정과 코드의 분리
 
-이미지를 다시 굽지 않고 `.env`의 값만 바꿔 호스트 포트를 8090에서 8091로 변경했다.
+이미지나 Dockerfile을 전혀 고치지 않고 `.env`의 값만 바꿔,
+호스트 포트를 8090에서 8091로, 컨테이너 내부 수신 포트를 8080에서 9000으로 변경했다.
 
 ```
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker compose exec web env | grep APP_ENV
+[user]@[host] CodysseyMissionE1 % docker compose exec web env | grep APP_ENV
 APP_ENV=prod
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker compose up -d
+[user]@[host] CodysseyMissionE1 % docker compose up -d
 [+] Running 2/2
- ✔ Container compose-web     Running                                                                    0.0s 
- ✔ Container compose-helper  Running                                                                    0.0s 
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker compose ps
+ ✔ Container compose-web     Running                                                          0.0s
+ ✔ Container compose-helper  Running                                                          0.0s
+[user]@[host] CodysseyMissionE1 % docker compose ps
 NAME             IMAGE                      COMMAND                   SERVICE   CREATED              STATUS              PORTS
-compose-helper   alpine:latest              "tail -f /dev/null"       helper    About a minute ago   Up About a minute   
+compose-helper   alpine:latest              "tail -f /dev/null"       helper    About a minute ago   Up About a minute
 compose-web      mission1-web-compose:1.0   "/docker-entrypoint.…"   web       About a minute ago   Up About a minute   80/tcp, 0.0.0.0:8091->9000/tcp, [::]:8091->9000/tcp
-ljh9512060277@c4r5s5 CodysseyMissionE1 % curl http://localhost:8091
+[user]@[host] CodysseyMissionE1 % curl http://localhost:8091
 <!doctype html>
 <html>
 <head><meta charset="utf-8"><title>나의 첫 컨테이너</title></head>
@@ -913,24 +989,30 @@ ljh9512060277@c4r5s5 CodysseyMissionE1 % curl http://localhost:8091
   <h1>CODYSSEYMISSIONE1</h1>
   <p>날짜: 2026-07-28 / 버전: v3</p>
 </body>
-</html>%                                                                                                     
-ljh9512060277@c4r5s5 CodysseyMissionE1 % docker compose down
+</html>
+[user]@[host] CodysseyMissionE1 % docker compose down
 [+] Running 3/3
- ✔ Container compose-helper           Removed                                                          10.3s 
- ✔ Container compose-web              Removed                                                           0.3s 
- ✔ Network codysseymissione1_default  Removed                                                           0.1s 
-ljh9512060277@c4r5s5 CodysseyMissionE1 % 
+ ✔ Container compose-helper           Removed                                                10.3s
+ ✔ Container compose-web              Removed                                                 0.3s
+ ✔ Network codysseymissione1_default  Removed                                                 0.1s
 ```
 
 브라우저 접속 화면(주소창 포함):
 
 ![환경 변수 변경 후 접속 — 8091](images/compose-web-8091.png)
 
+두 가지가 동시에 증명된다.
+첫째, `docker compose exec web env | grep APP_ENV`의 결과가 `prod`다.
+Dockerfile에는 `ENV APP_ENV=dev`로 적혀 있으므로, 이미지에 들어 있는 기본값을
+Compose가 `.env`의 값으로 덮어썼다는 뜻이다.
+둘째, `docker compose ps`의 PORTS가 `0.0.0.0:8091->9000/tcp`로 바뀌었다.
+이미지를 다시 굽지 않았는데도 호스트 포트와 컨테이너 내부 포트가 모두 달라졌고,
+브라우저와 curl 양쪽에서 8091로 정상 접속되었다.
+
 배움 포인트: 이미지(코드)는 그대로 두고 설정 파일만 바꿔 동작이 달라졌다.
-Dockerfile에 `ENV APP_ENV=dev`로 넣어 둔 기본값을 Compose가 `prod`로 덮어쓴 것도
-같은 원리로, 하나의 이미지를 개발·운영 등 여러 환경에서 재사용하는 방식이다.
-검증을 마친 뒤 `.env`는 원래 값(HOST_PORT=8090)으로 되돌려 두었으므로,
-3절의 재현 절차는 8090 기준으로 그대로 동작한다.
+하나의 이미지를 개발·운영 등 여러 환경에서 재사용하는 방식이 이 구조다.
+검증을 마친 뒤 `.env`는 원래 값(HOST_PORT=8090, NGINX_PORT=8080)으로 되돌려
+저장소에 반영했으므로, 3절의 재현 절차는 8090 기준으로 그대로 동작한다.
 
 ### 10-5. GitHub SSH 키 설정
 
@@ -960,6 +1042,11 @@ Warning: Permanently added 'github.com' (ED25519) to the list of known hosts.
 git@github.com: Permission denied (publickey).
 ```
 
+명령을 순서대로 보면, 먼저 기존 키가 있는지 확인하고(`ls -al ~/.ssh`),
+`ssh-keygen`으로 개인 키와 공개 키 한 쌍을 만들었다. `ssh-add`는 만든 개인 키를
+열쇠 관리 프로그램에 등록해 매번 암호를 묻지 않게 하고, `pbcopy < …pub`은
+공개 키 파일의 내용을 클립보드로 복사한다(성공해도 아무것도 출력하지 않는다).
+
 여기서 인증이 거부되었다. 공개 키를 GitHub 계정에 등록한 뒤 다시 시도했다
 (상세 분석은 트러블슈팅 사례 4).
 
@@ -982,6 +1069,11 @@ Everything up-to-date
 ```
 
 ![원격 주소 전환 및 푸시](images/ssh-remote-push.png)
+
+`git remote -v`의 두 줄이 각각 내려받기(fetch)와 올리기(push)에 쓰이는 주소이며,
+둘 다 `git@github.com:` 형태로 바뀐 것이 전환 완료의 증거다.
+`Everything up-to-date`는 이 시점에 올릴 새 변경이 없었다는 뜻으로,
+SSH 방식으로 원격에 정상 연결되어 상태를 비교했음을 보여 준다.
 
 인증 방식 차이와 재현 시 주의사항:
 
@@ -1016,3 +1108,8 @@ Docker 볼륨의 영속성은 백업을 의미하지 않는다. 중요한 데이
 이미지는 빌드 시점의 파일을 담은 읽기 전용 결과물이고, 컨테이너는 그 이미지로 만들어진
 실행체다. 그래서 소스를 고쳐도 이미지에는 반영되지 않으며, 즉시 반영이 필요한 개발
 단계에서는 바인드 마운트를, 배포 단계에서는 재빌드를 사용한다.
+
+컨테이너에 들어가는 방법은 세 가지이고 성격이 다르다. `run -it`은 새 컨테이너를
+만들면서 그 본체 작업으로 들어가는 것, `attach`는 이미 도는 컨테이너의 본체 작업에
+직접 연결하는 것, `exec`는 도는 컨테이너에 별도의 프로세스를 새로 띄워 들어가는 것이다.
+앞의 두 방법은 `exit` 시 컨테이너가 함께 멈추고, `exec`는 멈추지 않는다.
